@@ -158,6 +158,55 @@ tree.plots %>%              # the saving call within the do function
   do(., 
      ggsave(.$plots, filename = paste(getwd(), "/", "map-", .$Genus, ".png", sep = ""), device = "png", height = 12, width = 16, units = "cm"))
 
+############### Modifying Data ###############################
+
+
+
+### OUtliers ###
+
+
+# Categorical Outliers #
+#Outlier is < 10% for cat
+# Worldwide shipments of smartphone OS
+# in millions for 2013 Q1
+OS <- read.csv("OS.csv", header = TRUE)
+View(OS)
+OS
+
+# Either combine into "other" (if homogeneous) or delete
+OS.hi <- subset(OS, Proportion > 0.1)
+OS.hi
+
+
+# Quantitative data Outliers
+# See outliers in boxplots
+#dplyr::filter()
+require("datasets")
+library(help = "datasets")
+?datasets
+?rivers
+data.frame(rivers2)
+rivers2 <- datasets::rivers # Lengths of Major North American Rivers
+#data(datasets::rivers)
+hist(rivers2)
+boxplot(rivers2, horizontal = TRUE)
+boxplot.stats(rivers2)
+rivers.low  <- rivers2[rivers2 < 1210]  # Remove outliers
+boxplot(rivers.low, horizontal = TRUE)  # Has new outliers
+boxplot.stats(rivers.low)
+rivers.low2  <- rivers2[rivers2 < 1055]  # Remove again
+boxplot(rivers.low2)  # Still one outlier
+
+
+
+
+
+
+
+
+
+
+
 
 ############## Linear Mixed Models #####################
 #Why / when
