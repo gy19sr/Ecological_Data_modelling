@@ -16,7 +16,8 @@ library(caret)
 library(randomForest)
 library(ranger)
 library(sparkline)
-
+library(mnormt)
+library(psych)
 
 # Set your working directory
 setwd("C:/Users/stuar/OneDrive/Documents/onlinecourses/Ecology/Ecological_Data_modelling")  
@@ -158,7 +159,7 @@ tree.plots %>%              # the saving call within the do function
   do(., 
      ggsave(.$plots, filename = paste(getwd(), "/", "map-", .$Genus, ".png", sep = ""), device = "png", height = 12, width = 16, units = "cm"))
 
-############### Modifying Data ###############################
+######################## Modifying Data ###############################
 
 
 
@@ -197,7 +198,8 @@ boxplot.stats(rivers.low)
 rivers.low2  <- rivers2[rivers2 < 1055]  # if Remove again
 boxplot(rivers.low2)  # Still one outlier
 
-########### Transforming variables ################
+
+######### Transforming variables ##############
 
 
 ?islands
@@ -211,7 +213,118 @@ islands.z
 hist(islands.z, breaks = 16) #in R breaks is a suggestion not manditory
 round(mean(islands.z)) # rounds off to see M = 0
 sd(islands.z) # SD = 1
-arr(islands.z, "scaled:center") # Show original mean
+attr(islands.z, "scaled:center") # Show original mean
+attr(islands.z, "scaled:scale") #show original SD
+islands.z <- as.numeric(islands.z) #converts from matrix back to numeric
+islands.z
+
+
+# Logarithmic Transformations
+islands.ln <- log(islands)  # Natural log (base = e)
+# islands.log10 <- log10(islands)  # Common log (base = 10)
+# islands.log2 <- log2(islands)  # Binary log (base = 2)
+hist(islands.ln) #more centrally distributed
+boxplot(islands.ln) # far fewer outliers
+#this can not be done with data with zeros
+# so can Add 1 to avoid undefined logs when X = 0
+# x.ln <- log(x + 1)
+
+# Squaring
+# For negatively skewed variables
+# Distribution may need to be recentered so that all values are positive (0 is okay)
+
+# Ranking
+#means don't need the values just the order
+islands.rank1 <- rank(islands)
+hist(islands.rank1) #reason not flat is because there are ties in frequency
+boxplot(islands.rank1)
+# ties.method = c("average", "first", "random", "max", "min")
+islands.rank2 <- rank(islands, ties.method = "random")
+hist(islands.rank2)
+boxplot(islands.rank2)
+
+# Dichotomizing
+# Use wisely and purposefully!
+# Split at 1000 (= 1,000,000 square miles)
+# ifelse is the conditional element selection
+continent <- ifelse(islands > 1000, 1, 0)
+continent
+
+rm(list = ls())  # Clean up
+
+
+######## Computing composite variables #######
+
+#taking variables and combinding variables 
+# Create variable rn1 with 1 million random normal values
+# Will vary from one time to another
+rn1 <- rnorm(1000000)
+hist(rn1)
+summary(rn1) #shows plus or minus 5 standard deviations
+
+# Create variable rn2 with 1 million random normal values
+rn2 <- rnorm(1000000)
+hist(rn2)
+summary(rn2) #shows plus or minus 5 standard deviations
+
+# Average scores across two variables
+rn.mean <- (rn1 + rn2)/2 #1st item + 1st item /2 then on to 2nd item of varaiables and so on
+hist(rn.mean)
+
+# Multiply scores across two variables
+rn.prod <- rn1 * rn2
+hist(rn.prod) #high frequency of middle and goes further out
+summary(rn.prod) # min and max also greatly increased
+
+# Kurtosis comparisons
+# The package "moments" gives kurtosis where a
+# mesokurtic, normal distribution has a value of 3.
+# The package "psych" recenters the kurtosis values
+# around 0, which is more common now.
+#help(package = "psych")
+#require("psych")
+kurtosi(rn1) # should be close to zero
+kurtosi(rn2) # should be close to zero
+kurtosi(rn.mean) # should be close to zero
+kurtosi(rn.prod)  # Similar to Cauchy distribution - looks normal but actually high skewness
+
+# Clean up
+rm(list = ls())
+
+######## missing data ############
+
+# NA = "Not Available"
+# Makes certain calculations impossible
+x1 <- c(1, 2, 3, NA, 5)
+summary(x1)  # Works with NA
+mean(x1)  # Doesn't work
+
+# To find missing values
+which(is.na(x1))  # Give index number
+
+# Ignore missing values with na.rm = T
+mean(x1, na.rm = T)
+
+# Replace missing values with 0 (or other number)
+# Option 1: Using "is.na"
+x2 <- x1
+x2[is.na(x2)] <- 0
+x2
+# Option 2: using "ifelse"
+x3 <- ifelse(is.na(x1), 0, x1)
+x3
+
+# For data frames, R has many packages to deal
+# intelligently with missing data via imputation.
+# These are just three:
+# mi: Missing Data Imputation and Model Checking
+browseURL("http://cran.r-project.org/web/packages/mi/index.html")
+# mice: Multivariate Imputation by Chained Equations
+browseURL("http://cran.r-project.org/web/packages/mice/index.html")
+# imputation
+browseURL("http://cran.r-project.org/web/packages/imputation/index.html")
+
+rm(list = ls())  # Clean up
 
 
 
