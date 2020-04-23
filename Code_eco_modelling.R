@@ -162,7 +162,7 @@ tree.plots %>%              # the saving call within the do function
 
 
 
-### OUtliers ###
+######## OUtliers #############
 
 
 # Categorical Outliers #
@@ -194,17 +194,24 @@ boxplot.stats(rivers2)
 rivers.low  <- rivers2[rivers2 < 1210]  # Remove outliers
 boxplot(rivers.low, horizontal = TRUE)  # Has new outliers
 boxplot.stats(rivers.low)
-rivers.low2  <- rivers2[rivers2 < 1055]  # Remove again
+rivers.low2  <- rivers2[rivers2 < 1055]  # if Remove again
 boxplot(rivers.low2)  # Still one outlier
 
+########### Transforming variables ################
 
 
+?islands
+islands
+hist(islands, breaks = 16) #can see a skewed distribution
 
 
-
-
-
-
+# can turn into z-scores - doesn't really change, just makes easier to manage
+islands.z <- scale(islands) # M = 0, SD =1
+islands.z
+hist(islands.z, breaks = 16) #in R breaks is a suggestion not manditory
+round(mean(islands.z)) # rounds off to see M = 0
+sd(islands.z) # SD = 1
+arr(islands.z, "scaled:center") # Show original mean
 
 
 
