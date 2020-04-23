@@ -518,6 +518,153 @@ detach("package:car", unload=TRUE)
 rm(list = ls())
 
 
+####### 3d scatterplots ##############
+
+
+# Load data
+?iris
+data(iris)
+iris[1:5, ]
+
+# Static 3D scatterplot
+# Install and load the "scatterplot3d" package
+install.packages("scatterplot3d")
+require("scatterplot3d")
+
+# Basic static 3D scatterplot
+scatterplot3d(iris[1:3])
+
+# Modified static 3D scatterplot
+# Coloring, vertical lines
+# and Regression Plane 
+s3d <-scatterplot3d(iris[1:3],
+                    pch = 16,
+                    highlight.3d = TRUE,
+                    type = "h",
+                    main = "3D Scatterplot")
+plane <- lm(iris$Petal.Length ~ iris$Sepal.Length + iris$Sepal.Width) 
+s3d$plane3d(plane)
+
+# Spinning 3D scatterplot
+# Install and load the "rgl" package ("3D visualization 
+# device system (OpenGL)")
+# NOTE: This will cause RStudio to crash when graphics 
+# window is closed. Instead, run this in the standard, 
+# console version of R.
+install.packages("rgl")
+require("rgl")
+require("RColorBrewer")
+plot3d(iris$Petal.Length,  # x variable
+       iris$Petal.Width,   # y variable
+       iris$Sepal.Length,  # z variable
+       xlab = "Petal.Length",
+       ylab = "Petal.Width",
+       zlab = "Sepal.Length",
+       col = brewer.pal(3, "Dark2")[unclass(iris$Species)],
+       size = 8)
+
+# Clean up
+detach("package:scatterplot3d", unload = TRUE)
+detach("package:rgl", unload = TRUE)
+detach("package:RColorBrewer", unload = TRUE)
+rm(list = ls())
+
+
+
+####################### two way anova ###############################
+
+#great way to see how two categorcial variables and their
+#interation affect the outcome of a quantaive response variable
+
+# Built-in dataset "warpbreaks"
+?warpbreaks
+data(warpbreaks)
+boxplot(breaks ~ wool*tension, data = warpbreaks)
+
+# Model with interaction
+aov1 <- aov(breaks ~ 
+              wool + tension + wool:tension, 
+            # or: wool*tension, 
+            data = warpbreaks)
+summary(aov1)
+
+# Additional information on model
+model.tables(aov1)
+model.tables(aov1, type = "means")
+model.tables(aov1, type = "effects")  # "effects" is default
+
+# Post-hoc test
+TukeyHSD(aov1)
+
+remove(list = ls())  # Clean up
+
+
+
+############## Cluster Analysis #################
+
+# Load data
+?mtcars
+data(mtcars)
+mtcars[1:5, ]
+mtcars1 <- mtcars[, c(1:4, 6:7, 9:11)]  # Select variables
+mtcars1[1:5, ]
+
+# Three major kinds of clustering:
+#   1. Split into set number of clusters (e.g., kmeans)
+#   2. Hierarchical: Start separate and combine
+#   3. Dividing: Start with a single group and split
+
+# We'll use hierarchical clustering
+# Need distance matrix (dissimilarity matrix)
+d <- dist(mtcars1)
+d  # Huge matrix
+
+# Use distance matrix for clustering
+c <- hclust(d)
+c
+
+# Plot dendrogram of clusters
+plot(c)
+
+# Put observations in groups
+# Need to specify either k = groups or h = height
+g3 <- cutree(c, k = 3)  # "g3" = "groups 3"
+# cutree(hcmt, h = 230) will give same result
+g3
+# Or do several levels of groups at once
+# "gm" = "groups/multiple"
+gm <- cutree(c, k = 2:5) # or k = c(2, 4)
+gm
+
+# Draw boxes around clusters
+rect.hclust(c, k = 2, border = "gray")
+rect.hclust(c, k = 3, border = "blue")
+rect.hclust(c, k = 4, border = "green4")
+rect.hclust(c, k = 5, border = "darkred")
+
+# k-means clustering
+km <- kmeans(mtcars1, 3)
+km
+
+# Graph based on k-means
+require(cluster)
+clusplot(mtcars1,  # data frame
+         km$cluster,  # cluster data
+         color = TRUE,  # color
+         #          shade = TRUE,  # Lines in clusters
+         lines = 3,  # Lines connecting centroids
+         labels = 2)  # Labels clusters and cases
+
+rm(list = ls())  # Clean up
+
+
+
+
+
+
+
+
+
 
 ############## Linear Mixed Models #####################
 #Why / when
@@ -540,7 +687,6 @@ rm(list = ls())
 
 
 
-############## Cluster Analysis #################
 
 
 
