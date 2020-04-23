@@ -327,6 +327,197 @@ browseURL("http://cran.r-project.org/web/packages/imputation/index.html")
 rm(list = ls())  # Clean up
 
 
+################# dataset selection ###############################
+
+# Load data
+?mtcars
+data(mtcars)
+mtcars
+
+# Mean quarter-mile time (for all cars)
+mean(mtcars$qsec)
+
+# Mean quarter-mile time (for 8-cylinder cars)
+# Use square brackets to indicate what to select
+# in this format: [rows]
+mean(mtcars$qsec[mtcars$cyl == 8])
+
+# Median horsepower (for all cars)
+median(mtcars$hp)
+
+# Mean MPG for cars above median horsepower
+mean(mtcars$mpg[mtcars$hp > median(mtcars$hp)])
+
+# Create new data frame for 8-cylinder cars
+# To create a new data frame, must indicate
+# which rows and columns to copy in this
+# format: [rows, columns]. To select all
+# columns, leave second part blank.
+cyl.8 <- mtcars[mtcars$cyl == 8, ]
+
+# Select 8-cylinder cars with 4+ barrel carburetors
+mtcars[mtcars$cyl == 8 & mtcars$carb >= 4, ]
+
+rm(list = ls())  # Clean up
+
+
+#### Analyzing by subgroup ######
+
+
+# Load data
+?iris
+data(iris)
+iris
+mean(iris$Petal.Width)
+
+# Split the data file and repeat analyses
+# with "aggregate"
+# Compare groups on mean of one variable
+aggregate(iris$Petal.Width ~ iris$Species, FUN = mean)
+
+# Compare groups on several variables
+# Use cbind to list outcome variables
+aggregate(cbind(iris$Petal.Width, iris$Petal.Length) ~ iris$Species, FUN = mean)
+
+rm(list = ls())  # Clean up
+
+
+##### merging files #####
+
+# Load data
+?longley
+data(longley)
+
+# Split up longley
+a1 <- longley[1:14, 1:6]  # Starting data
+a2 <- longley[1:14, 6:7]  # New column to add (with "Year" to match)
+b <- longley[15:16, ]     # New rows to add
+write.table(a1, "~/Desktop/R/longley.a1.txt", sep="\t")
+write.table(a2, "~/Desktop/R/longley.a2.txt", sep="\t")
+write.table(b, "~/Desktop/R/longley.b.txt", sep="\t")
+rm(list=ls()) # Clear out everything to start fresh
+
+# Import data
+a1t <- read.table("~/Desktop/R/longley.a1.txt", sep="\t")
+a2t <- read.table("~/Desktop/R/longley.a2.txt", sep="\t")
+
+# Take early years (a1t) and add columns (a2t)
+# Must specify variable to match cases
+a.1.2 <- merge(a1t, a2t, by = "Year")  # Merge two data frames
+a.1.2  # Check results
+
+# Add two more cases at bottom
+b <- read.table("~/Desktop/R/longley.b.txt", sep="\t")
+all.data <- rbind(a.1.2, b)  # "Row Bind"
+all.data  # Check data
+row.names(all.data) <- NULL  # Reset row names
+all.data  # Check data
+
+rm(list=ls())  # Clean up
+
+
+######################## Creating grouped box plots ################### #######
+
+# Load data
+# Use dataset "painters" from the package "MASS
+require(MASS)
+?painters
+# For an interesting follow-up on this data, see
+# "Taste Endures! The Rankings of Roger de Piles (†1709)
+# and Three Centuries of Art Prices" by Kathryn Graddy at
+browseURL("http://people.brandeis.edu/~kgraddy/published%20papers/DePiles_complete.pdf")
+data(painters)
+painters
+
+# Draw boxplots of outcome (Expression) by group (School)
+# Basic version
+boxplot(painters$Expression ~ painters$School)
+
+# Modified version
+require("RColorBrewer")
+boxplot(painters$Expression ~ painters$School,
+        col = brewer.pal(8, "Pastel2"),
+        names  = c("Renais.",
+                   "Mannerist",
+                   "Seicento",
+                   "Venetian",
+                   "Lombard",
+                   "16th C.",
+                   "17th C.",
+                   "French"),
+        #         notch = TRUE,  # Not good because of small samples; don't use
+        boxwex = 0.5,  # Width of box
+        whisklty = 1,  # Whisker line type; 1 = solid line
+        staplelty = 0,  # Staple type; 0 = none
+        outpch = 16,  # Outlier symbol; 16 = filled circle
+        outcol = brewer.pal(8, "Pastel2"),  # Outlier color
+        main = "Expression Ratings of Painters by School\nFrom \"painters\" Dataset in \"MASS\" Package",
+        xlab = "Painter's School",
+        ylab = "Expression Ratings")
+
+# Clean up
+detach("package:MASS", unload=TRUE)
+detach("package:RColorBrewer", unload=TRUE)
+rm(list = ls())
+
+
+#sections skipped
+#T-test of comparing means
+#chi sq test for two cats
+#robust regressions
+#compare proportions
+
+################## Scatter Plot matrix #############
+
+# Load data
+?iris
+data(iris)
+iris[1:5, ]
+
+# Basic scatterplot matrix
+pairs(iris[1:4])
+
+# Modified scatterplot matrices
+
+# Create palette with RColorBrewer
+require("RColorBrewer")
+display.brewer.pal(3, "Pastel1")
+
+# Put histograms on the diagonal (from "pairs" help)
+panel.hist <- function(x, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5) )
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y/max(y)
+  rect(breaks[-nB], 0, breaks[-1], y,  ...)
+  # Removed "col = "cyan" from code block; original below
+  # rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...) 
+}
+
+pairs(iris[1:4], 
+      panel = panel.smooth,  # Optional smoother
+      main = "Scatterplot Matrix for Iris Data Using pairs Function",
+      diag.panel = panel.hist, 
+      pch = 16, 
+      col = brewer.pal(3, "Pastel1")[unclass(iris$Species)])
+
+# Similar with "car" package
+# Gives kernal density and rugplot for each variable
+library(car)
+scatterplotMatrix(~Petal.Length + Petal.Width + Sepal.Length + Sepal.Width | Species,
+                  data = iris,
+                  col = brewer.pal(3, "Dark2"),
+                  main="Scatterplot Matrix for Iris Data Using \"car\" Package")
+
+# Clean up
+palette("default")  # Return to default
+detach("package:RColorBrewer", unload = TRUE)
+detach("package:car", unload=TRUE)
+rm(list = ls())
+
+
 
 ############## Linear Mixed Models #####################
 #Why / when
@@ -338,13 +529,13 @@ rm(list = ls())  # Clean up
 
 
 
-##############MCMCGLMM ############################
+############## MCMCGLMM ############################
 
 
 
 
 
-########################Bayesian############################
+######################## Bayesian ############################
 
 
 
